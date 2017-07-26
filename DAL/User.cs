@@ -11,21 +11,11 @@ namespace DAL
     [Table("Users")]
     public class User
     {
-        int id=0;
-        string login;
-        string password;
-        string phone;
-        string email;
+       
         DateTime regDate;
-        string user1CId;
         string iin;
-        string city1CGuid;
         int cityId;
-        string contr1CId;
-        string contrCode;
-        Guid? contract1CId;
-        bool isBlocked;
-        bool isDeleted;
+      
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -37,13 +27,13 @@ namespace DAL
         public string Email { get; set; }
         public DateTime RegDate
         {
-            get { return RegDate; }
+            get { return regDate; }
             set
             {
-                if (value==null)
-                {
-                    RegDate = DateTime.Now;
-                }
+                if (value==null||value==DateTime.MinValue)
+                    regDate = DateTime.Now;
+                else
+                    regDate = value;
             }
         }
         public string User1CId { get; set; }
@@ -70,7 +60,7 @@ namespace DAL
             { return cityId; }
          set
             {
-                if (value==0 || value<0)
+                if (value==0 || value<0 || value==null)
                 {
                     cityId = 1;
                 }
@@ -85,32 +75,10 @@ namespace DAL
         public Guid? Contract1CId { get; set; }
         public bool IsBlocked { get; set; }
         public bool IsDeleted { get; set; }
+        
+        public virtual Table table { get; set; }
 
-        public void Setid(User u)
-        {
-            id = u.id;
-        }
-        public int Getid(User u)
-        {
-            return id;
-        }
-        //string login;
-        //string password;
-        //string phone;
-        //string email;
-        //DateTime regDate;
-        //string user1CId;
-        //string iin;
-        //string city1CGuid;
-        //int cityId;
-        //string contr1CId;
-        //string contrCode;
-        //Guid? contract1CId;
-        //bool isBlocked;
-        //bool isDeleted;
-
-
-
+    public enum TypeReset {login, phone}
 
 
     }
