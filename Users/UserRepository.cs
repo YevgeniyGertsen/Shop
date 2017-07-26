@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using DAL;
-
+using System.Data.Entity;
 
 namespace ServiceUsers
 {
@@ -54,8 +54,7 @@ namespace ServiceUsers
           
             try
             {
-                User u = db.Users.Find(user.Id);
-                u = user;
+                db.Entry(user).State = EntityState.Modified;
                 db.SaveChanges();
                 return true;
             }
