@@ -18,9 +18,6 @@ namespace ServiceUsers
 {
     public class UserRepository
     {
-
-        private string name = "";
-
         private Entity db = new Entity();
 
         public User GetUserInfo(HttpRequestBase request = null)
@@ -267,6 +264,7 @@ namespace ServiceUsers
         }
 
         private static Random random = new Random();
+
         private static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -297,7 +295,7 @@ namespace ServiceUsers
             return sb.ToString();
         }
 
-        public static void SendMail(string from, List<string> toList, string subject, string messageText)
+        private static void SendMail(string from, List<string> toList, string subject, string messageText)
         {
             if (@from == "")
             {
