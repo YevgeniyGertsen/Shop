@@ -120,24 +120,33 @@ namespace ServiceUsers
             }
             catch (Exception e)
             {
-                erMessage = e.Message;
+                erMessage = $"Не удаётся удалить пользователя: {e.Message}";
                 return false;
             }
 
         }
-        public bool DisableUser(int id, bool isBlocked, out string erMessage)//добавить причину блокировки и кто заблокировал
+        public bool DisableUser(int id, bool isBlocked, string blockReason, int blockInitiator, out string erMessage)//добавить причину блокировки и кто заблокировал
         {
-            erMessage = isBlocked ? "Отключение" : "Включение" + " прошло успешно";
+            erMessage = isBlocked ? "Отключение" : "Включение" + " пользователя прошло успешно";
             try
             {
                 User tempUser = db.Users.Find(id);
                 if (tempUser == null)
                 {
-                    erMessage = "Запрашиваемый польззователь не найден";
+                    erMessage = "Запрашиваемый пользователь не найден";
                     return false;
                 }
 
                 tempUser.IsBlocked = isBlocked;
+                //tempUser.DateOfBlock = isBlocked ? DateTime.Now : null; так выходит ошибка неявного преобразования
+                if (isBlocked)
+                {
+                    tempUser.DateOfBlock = DateTime.Now;
+                }
+                else if (!isBlocked)
+                {
+                    tempUser.DateOfBlock = null;
+                }
                 //добавить поле дата блокировки при блокирлвке, а при разблокировке - очистить поле
                 //2 записать историю в таблицу Исторя блокировок
                 db.SaveChanges();
@@ -184,7 +193,33 @@ namespace ServiceUsers
 
                             }
                         }
-                        //phone home
+                    case User.TypeReset.phone:
+                        {
+                            var tUser = db.Users.Any(w => w.Phone == val);
+                            if (tUser)
+                            {
+                                User TempFindUser = db.Users.FirstOrDefault(w => w.Phone == val);
+
+                                string newPassword = RandomString(8);
+
+                                TempFindUser.Password = GenerateMD5(newPassword);
+                                db.SaveChanges();
+
+                                string cutEmail = TempFindUser.Email.Substring(0, 3) + "***" + TempFindUser.Email.Substring(TempFindUser.Email.IndexOf('@'), TempFindUser.Email.Length);
+
+                                SendMail("", new List<string>() { TempFindUser.Email }, "Смена пароля", string.Format("Ваш новый пароль {0}", newPassword));
+
+                                PassResetDoneConfirmation = "Ваш новый пароль отправлен Вам на почту " + cutEmail;
+                                return true;
+                            }
+                            else
+                            {
+                                PassResetDoneConfirmation = "Пользователь с таким номером телефона не найден.";
+                                return false;
+
+                            }
+                        }
+
                 }
                 return false;
             }
@@ -192,6 +227,42 @@ namespace ServiceUsers
             {
                 PassResetDoneConfirmation = "При смене пароля произошла ошибка. Попробуйте позже.";
                 return false;
+            }
+        }
+        public List<User> ReportUsers(User.UserReport UR)
+        {
+            List<User> LU = db.Users.ToList();
+            List<User> FinalList = new List<User>();
+            switch (UR)
+            {
+                case User.UserReport.blockedUsers:
+                    foreach (User item in LU)
+                    {
+                        if (item.IsBlocked)
+                        {
+                            FinalList.Add(item);
+                        }
+                    }
+                    return FinalList;
+                    break;
+                case User.UserReport.unblockedUsers:
+                    foreach (User item in LU)
+                    {
+                        if (!item.IsBlocked)
+                        {
+                            FinalList.Add(item);
+                        }
+                    }
+                    return FinalList;
+                    break;
+                case User.UserReport.allUsers:
+                    return LU;
+                    break;
+                case User.UserReport.inactiveUsers:
+
+                    break;
+                default:
+                    break;
             }
         }
 

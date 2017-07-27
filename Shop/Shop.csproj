@@ -75,6 +75,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="SQL.txt" />
     <Content Include="TaskShoppingCart.txt" />
     <Content Include="TaskUser.txt" />
   </ItemGroup>

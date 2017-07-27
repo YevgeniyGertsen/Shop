@@ -75,10 +75,12 @@ namespace DAL
         public Guid? Contract1CId { get; set; }
         public bool IsBlocked { get; set; }
         public bool IsDeleted { get; set; }
-        
+        public DateTime? DateOfBlock { get; set; }
         public virtual Table table { get; set; }
+        public bool IsManager { get; set; }
 
-    public enum TypeReset {login, phone}
+        public enum TypeReset {login, phone}
+        public enum UserReport {blockedUsers, unblockedUsers, allUsers,  inactiveUsers}
 
 
     }
