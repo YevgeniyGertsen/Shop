@@ -1,5 +1,6 @@
 ﻿using System.Data.Entity;
 
+
 namespace DAL
 {
     public class Entity : DbContext
@@ -7,5 +8,6 @@ namespace DAL
         public Entity() : base("DefaultConnection"){}
 
         public DbSet<User> Users { get; set; }
+        public DbSet<History> VisitHistory { get; set; }
     }
 }

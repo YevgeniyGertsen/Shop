@@ -18,3 +18,5 @@ create table BlockHistory (
 ,Reason nvarchar(1024)
 ,Initiator int
 )
+
+alter table VisitHistory add VizitDate datetime;
