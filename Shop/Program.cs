@@ -11,20 +11,27 @@ namespace Shop
 {
     class Program
     {
+       private static UserRepository ur = new UserRepository();
+
         static void Main(string[] args)
         {
+            Console.Write("Введите логин: " );
+            string login = Console.ReadLine();
+            Console.WriteLine(  );
+            Console.Write( "Введите пароль: " );
+            string pass = Console.ReadLine();
+            string logmes = "";
+            User currUser = ur.UserLogon(login, pass, out logmes);
 
-          
-            UserRepository ur = new UserRepository();
+            if (currUser==null)
+            {
+                Console.WriteLine(logmes);
+            }
+            else
+            {
+                Console.WriteLine("Превед {0}", currUser.Name);
+            }
             
-           User t =  ur.GetUserInfo();
-          
-                t.Login = "ddd";
-
-            ur.ResetPassword("", User.TypeReset.login);
-            string errMess;
-            ur.EditUser(t,out errMess);
-            Console.WriteLine(errMess);
         }
     }
 }

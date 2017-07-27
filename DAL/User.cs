@@ -76,11 +76,21 @@ namespace DAL
         public bool IsBlocked { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DateOfBlock { get; set; }
-        public virtual Table table { get; set; }
-        public bool IsManager { get; set; }
+        public  int TryesCount { get; set; }
+        public  DateTime? LastLogonDate { get; set; }
 
         public enum TypeReset {login, phone}
         public enum UserReport {blockedUsers, unblockedUsers, allUsers,  inactiveUsers}
+
+        public enum InactivePeriod
+        {
+            Month,
+            SixMonth,
+            Year,
+            None
+        }
+
+    
 
 
     }

@@ -9,6 +9,7 @@ using System.Net;
 using System.Web;
 using DAL;
 using System.Data.Entity;
+using System.Data.Odbc;
 using System.Data.SqlTypes;
 using System.Net.Mail;
 using System.Security.Cryptography;
@@ -56,7 +57,7 @@ namespace ServiceUsers
         public bool EditUser(User user, out string errMessage)
         {
             errMessage = "Данные изменены.";
-            var findUser = db.Users.Find(user.Id);
+            User findUser = db.Users.Find(user.Id);
             //findUser.Login = user.Login;
             findUser.Name = user.Name;
             findUser.Email = user.Email;
@@ -124,7 +125,7 @@ namespace ServiceUsers
         }
         public bool DisableUser(int id, bool isBlocked, string blockReason, int blockInitiator, out string erMessage)//добавить причину блокировки и кто заблокировал
         {
-            erMessage = isBlocked ? "Отключение" : "Включение" + " пользователя прошло успешно";
+            erMessage =( isBlocked ? "Отключение" : "Включение") + " пользователя прошло успешно";
             try
             {
                 User tempUser = db.Users.Find(id);
@@ -226,41 +227,39 @@ namespace ServiceUsers
                 return false;
             }
         }
-        public List<User> ReportUsers(User.UserReport UR)
+        public List<User> ReportUsers(User.UserReport ur, User.InactivePeriod period)
         {
-            List<User> LU = db.Users.ToList();
-            List<User> FinalList = new List<User>();
-            switch (UR)
+            List<User> LU = new List<User>();
+
+            switch (ur)
             {
                 case User.UserReport.blockedUsers:
-                    foreach (User item in LU)
-                    {
-                        if (item.IsBlocked)
-                        {
-                            FinalList.Add(item);
-                        }
-                    }
-                    return FinalList;
+                    LU = db.Users.Where(w => w.IsBlocked).ToList();
                     break;
                 case User.UserReport.unblockedUsers:
-                    foreach (User item in LU)
-                    {
-                        if (!item.IsBlocked)
-                        {
-                            FinalList.Add(item);
-                        }
-                    }
-                    return FinalList;
+                    LU = db.Users.Where(w => !w.IsBlocked).ToList();
                     break;
                 case User.UserReport.allUsers:
-                    return LU;
+                    LU = db.Users.ToList();
                     break;
                 case User.UserReport.inactiveUsers:
-
+                    {
+                        switch (period)
+                        {
+                            case User.InactivePeriod.SixMonth:
+                                LU = db.Users.Where(w => w.LastLogonDate <= DateTime.Now.AddMonths(-6).Date).ToList();
+                                break;
+                            case User.InactivePeriod.Year:
+                                LU = db.Users.Where(w => w.LastLogonDate <= DateTime.Now.AddYears(-1).Date).ToList();
+                                break;
+                        }
+                    }
                     break;
                 default:
                     break;
             }
+
+            return LU;
         }
 
         private static Random random = new Random();
@@ -326,6 +325,55 @@ namespace ServiceUsers
                 var cc = ex.Message;
             }
 
+        }
+
+        public User UserLogon(string login, string password, out string logonMessage)
+        {
+            logonMessage = "";
+            //8134B4FDE7DD5479C484FCE138AEA1E18FC09229
+            string hash = GenerateMD5(password);
+            User user = new User();
+            User userByLogin = db.Users.FirstOrDefault(w => w.Login == login);
+            if (userByLogin!=null)
+            {
+
+                if (userByLogin.IsBlocked)
+                {
+                    logonMessage = "Пользователь заблокирован";
+                    return null;
+                }
+
+                if (userByLogin.TryesCount>=3)
+                {
+                    logonMessage = "Пользователь заблокирован";
+                    string errMess = "";
+                    DisableUser(userByLogin.Id, true,"Превышен лимит неверных попыток ввода пароля.", 1121, out errMess);
+                    return null;
+                }
+
+
+                user = db.Users.FirstOrDefault(w => w.Login == login && w.Password == hash);
+                if (user == null)
+                {
+
+                    logonMessage = "Неверный логин или пароль.";
+                    db.Users.FirstOrDefault(w => w.Login == login).TryesCount += 1;
+                  
+                }
+                else
+                {
+                    user.LastLogonDate = DateTime.Now;
+                    user.TryesCount = 0;
+                  
+                }
+                db.SaveChanges();
+            }
+            else
+            {
+                logonMessage = "Неверный логин или пароль.";
+            }
+           
+            return user;
         }
     }
 }
