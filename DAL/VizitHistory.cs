@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace DAL
 {
     [Table("VisitHistory")]
-    public class History
+    public class VizitHistory
     {
         DateTime vizitDate;
        
