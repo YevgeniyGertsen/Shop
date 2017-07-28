@@ -7,7 +7,7 @@ using DAL;
 
 namespace ServiceUsers
 {
-    class HistoryRepository
+    public class HistoryRepository
     {
         private Entity db = new Entity();
         public void AddHistory(VizitHistory hist, out string errMessage)
