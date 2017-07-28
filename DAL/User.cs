@@ -11,11 +11,11 @@ namespace DAL
     [Table("Users")]
     public class User
     {
-       
+
         DateTime regDate;
         string iin;
         int cityId;
-      
+
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -30,7 +30,7 @@ namespace DAL
             get { return regDate; }
             set
             {
-                if (value==null||value==DateTime.MinValue)
+                if (value == null || value == DateTime.MinValue)
                     regDate = DateTime.Now;
                 else
                     regDate = value;
@@ -55,12 +55,13 @@ namespace DAL
 
         }
         public string City1CGuid { get; set; }
-        public int CityId {
+        public int CityId
+        {
             get
             { return cityId; }
-         set
+            set
             {
-                if (value==0 || value<0 || value==null)
+                if (value == 0 || value < 0 || value == null)
                 {
                     cityId = 1;
                 }
@@ -76,12 +77,14 @@ namespace DAL
         public bool IsBlocked { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DateOfBlock { get; set; }
-        public  int TryesCount { get; set; }
-        public  DateTime? LastLogonDate { get; set; }
+        public int TryesCount { get; set; }
+        public DateTime? LastLogonDate { get; set; }
 
-        public enum TypeReset {login, phone}
-        public enum UserReport {blockedUsers, unblockedUsers, allUsers,  inactiveUsers}
-
+        public enum TypeReset { login, phone }
+        public enum UserReport
+        {
+            blockedUsers, unblockedUsers, allUsers, inactiveUsers
+        }
         public enum InactivePeriod
         {
             Month,
@@ -89,9 +92,6 @@ namespace DAL
             Year,
             None
         }
-
-    
-
-
+        
     }
 }

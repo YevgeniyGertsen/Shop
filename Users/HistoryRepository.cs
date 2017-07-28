@@ -10,6 +10,7 @@ namespace ServiceUsers
     class HistoryRepository
     {
         private Entity db = new Entity();
+
         public void AddHistory(VizitHistory hist, out string errMessage)
         {
             errMessage = "Запись успешно добавлена";
@@ -30,6 +31,7 @@ namespace ServiceUsers
             List<VizitHistory> history = db.VisitHistory.Where(w => w.UserID == userId).ToList();
             return history;
         }
+
         public void AddBlockEvent(BlockHistory bEvent, out string errMessage)
         {
             errMessage = "Событие успешно добавлено";
