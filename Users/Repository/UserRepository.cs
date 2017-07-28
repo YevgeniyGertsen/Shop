@@ -1,25 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Configuration;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Web;
-using DAL;
 using System.Data.Entity;
-using System.Data.Odbc;
-using System.Data.SqlTypes;
+using System.Linq;
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
+using DAL;
+using Users.Interfaces;
 
-namespace ServiceUsers
+namespace Users.Repository
 {
-    public class UserRepository
+    public class UserRepository: IUserRepository
     {
-        private Entity db = new Entity();
+        IHistoryRepository hr;
+        private readonly Entity db;
+        private string outMess = "";
+
+       
+
+        public UserRepository()
+        {
+            hr=new HistoryRepository();
+            db = new Entity();
+          
+
+        }
 
         public User GetUserInfo(HttpRequestBase request = null)
         {
@@ -123,6 +129,7 @@ namespace ServiceUsers
             }
 
         }
+
         public bool DisableUser(int id, bool isBlocked, string blockReason, int blockInitiator, out string erMessage)//добавить причину блокировки и кто заблокировал
         {
             erMessage =( isBlocked ? "Отключение" : "Включение") + " пользователя прошло успешно";
@@ -136,15 +143,28 @@ namespace ServiceUsers
                 }
 
                 tempUser.IsBlocked = isBlocked;
-                //tempUser.DateOfBlock = isBlocked ? DateTime.Now : null; так выходит ошибка неявного преобразования
+                //tempUser.DateOfBlock = isBlocked ? DateTime.Now : null; //так выходит ошибка неявного преобразования
                 if (isBlocked)
                 {
                     tempUser.DateOfBlock = DateTime.Now;
+
                 }
                 else if (!isBlocked)
                 {
                     tempUser.DateOfBlock = null;
+                    tempUser.TryesCount = 0;
                 }
+
+                BlockHistory bh = new BlockHistory();
+                bh.CreateDate= DateTime.Now;
+                bh.Initiator = blockInitiator;
+                bh.Reason = blockReason;
+                bh.BlockUserID = id;
+
+                hr.AddBlockEvent(bh, out erMessage);
+                hr.Save();
+
+
                 //добавить поле дата блокировки при блокирлвке, а при разблокировке - очистить поле
                 //2 записать историю в таблицу Исторя блокировок
                 db.SaveChanges();
@@ -227,6 +247,7 @@ namespace ServiceUsers
                 return false;
             }
         }
+
         public List<User> ReportUsers(User.UserReport ur, User.InactivePeriod period)
         {
             List<User> LU = new List<User>();
@@ -271,7 +292,7 @@ namespace ServiceUsers
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        private string GenerateMD5(string newPassword)
+        public string GenerateMD5(string newPassword)
         {
             MD5 md5 = System.Security.Cryptography.MD5.Create();
 
@@ -327,7 +348,7 @@ namespace ServiceUsers
 
         }
 
-        public User UserLogon(string login, string password, out string logonMessage)
+      public User UserLogon(string login, string password, out string logonMessage)
         {
             logonMessage = "";
             //8134B4FDE7DD5479C484FCE138AEA1E18FC09229
@@ -364,7 +385,19 @@ namespace ServiceUsers
                 {
                     user.LastLogonDate = DateTime.Now;
                     user.TryesCount = 0;
-                  
+                    VizitHistory vh = new VizitHistory()
+                    {
+                        ClientAgent = "Chrome",
+                        ClientDevice = "Win",
+                        IP = "",
+                        UserID = user.Id,
+                        VizitDate = DateTime.Now
+                    };
+
+                    var msg = "";
+                    hr.AddHistory(vh, out msg);
+                    
+                    hr.Save();
                 }
                 db.SaveChanges();
             }
@@ -375,5 +408,7 @@ namespace ServiceUsers
            
             return user;
         }
+
+        public void Save(){}
     }
 }

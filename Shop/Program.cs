@@ -4,23 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DAL;
-using ServiceUsers;
+using Users.Interfaces;
+using Users.Repository;
 
 
 namespace Shop
 {
     class Program
     {
-       private static UserRepository ur = new UserRepository();
+       private static IUserRepository ur = new UserRepository();
 
         static void Main(string[] args)
         {
+            string logmes = "";
+           // ur.DisableUser(1136, false, "", 1, out logmes);
             Console.Write("Введите логин: " );
             string login = Console.ReadLine();
             Console.WriteLine(  );
             Console.Write( "Введите пароль: " );
             string pass = Console.ReadLine();
-            string logmes = "";
+           
             User currUser = ur.UserLogon(login, pass, out logmes);
 
             if (currUser==null)

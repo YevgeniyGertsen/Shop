@@ -16,7 +16,8 @@ namespace DAL
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        DateTime VizitDate
+        public int HistID { get; set; }
+        public DateTime VizitDate
         {
             get { return vizitDate; }
             set
@@ -27,10 +28,11 @@ namespace DAL
                     vizitDate = value;
             }
         }
-        public int HistID { get; set; }
         public int UserID { get; set; }
         public string IP { get; set; }
         public string ClientAgent { get; set; }
         public string ClientDevice { get; set; }
+
+       
     }
 }
