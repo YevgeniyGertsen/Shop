@@ -5,7 +5,7 @@ namespace DAL
 {
     public class Entity : DbContext
     {
-        public Entity() : base("DefaultConnection"){}
+        public Entity() : base("DefaultConnectionBase") {}
 
         public DbSet<User> Users { get; set; }
         public DbSet<VizitHistory> VisitHistory { get; set; }

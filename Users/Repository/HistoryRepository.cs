@@ -9,9 +9,18 @@ namespace Users.Repository
     public class HistoryRepository : IHistoryRepository
     {
         private Entity db = new Entity();
-
-        public void AddHistory(VizitHistory hist, out string errMessage)
+        
+        public void AddHistory(User user, out string errMessage)
         {
+            VizitHistory hist = new VizitHistory()
+            {
+                ClientAgent = "Chrome",
+                ClientDevice = "Win",
+                IP = "",
+                UserID = user.Id,
+                VizitDate = DateTime.Now
+            };
+
             errMessage = "Запись успешно добавлена";
             try
             {

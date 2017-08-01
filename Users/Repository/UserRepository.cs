@@ -17,7 +17,21 @@ namespace Users.Repository
         private readonly Entity db;
         private string outMess = "";
 
-       
+        public delegate void dMessage(string mes);
+        private dMessage del= new dMessage(ShowMessage);
+
+        public delegate void dHistory(VizitHistory hist, out string str);
+
+        private dHistory dHis;
+
+        public void dHistRegister(dHistory dhis)
+        {
+            dHis = dhis;
+        }
+        public void dHistRegister2(dHistory dhis)
+        {
+            dHis -= dhis;
+        }
 
         public UserRepository()
         {
@@ -52,17 +66,28 @@ namespace Users.Repository
 
         public User GetUserInfo(int id)
         {
+            del.Invoke("Получили информацию о пользователе по его ID");
             return db.Users.FirstOrDefault(w => w.Id == id);
         }
 
         public User GetUserInfo(string email)
         {
+            del.Invoke("Получили информацию о пользователе по его email");
             return db.Users.FirstOrDefault(w => w.Email == email);
         }
 
-        public bool EditUser(User user, out string errMessage)
+        public void RegisterDelegate(dMessage dMes)
         {
-            errMessage = "Данные изменены.";
+            del = dMes;
+        }
+
+        public bool EditUser(User user)
+        {
+           // del = ShowMessageEditUser;
+
+            bool result = true;
+            string errMessage = "Данные изменены.";
+
             User findUser = db.Users.Find(user.Id);
             //findUser.Login = user.Login;
             findUser.Name = user.Name;
@@ -75,15 +100,34 @@ namespace Users.Repository
             {
                 db.Entry(findUser).State = EntityState.Modified;
                 db.SaveChanges();
-                return true;
             }
             catch (Exception e)
             {
                 errMessage = e.Message;
-                return false;
+                
+                result= false;
+            }
+            finally
+            {
+                del.Invoke(errMessage);
+                //dSm(ShowMessageEditUser);
             }
 
+            return result;
+        }
 
+        private static void ShowMessage(string mes)
+        {
+            Console.WriteLine(mes);
+        }
+        private static void ShowMessageEditUser(string mes)
+        {
+            Console.WriteLine("Результат изменения пользователя: "+ mes);
+        }
+
+        private static void dSm(dMessage d)
+        {
+            d.Invoke("Работа завершена");
         }
 
         public User AddUser(User user, out string errMessage)
@@ -385,19 +429,12 @@ namespace Users.Repository
                 {
                     user.LastLogonDate = DateTime.Now;
                     user.TryesCount = 0;
-                    VizitHistory vh = new VizitHistory()
-                    {
-                        ClientAgent = "Chrome",
-                        ClientDevice = "Win",
-                        IP = "",
-                        UserID = user.Id,
-                        VizitDate = DateTime.Now
-                    };
+                  
 
                     var msg = "";
-                    hr.AddHistory(vh, out msg);
-                    
-                    hr.Save();
+                    if (dHis != null)
+                        dHis.Invoke(user,out msg);
+
                 }
                 db.SaveChanges();
             }
